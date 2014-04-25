@@ -1,0 +1,39 @@
+RASH - Remote Application SHutdown
+
+-- Autor
+Gerrit 'nold' Pannek - 2014
+nold <at> freeboxes <dot> net
+
+-- About
+RASH is a combination of scripts, which allow to start/stop a daemon (called service) 
+on a remote host using SSH. 
+To do so, RASH has to be installed and configured on all Hosts and Clients.
+
+-- Configuration
+--- /etc/rash/rash.conf
+General configuration, f.e. which Username is used, how big the timeouts are
+or if you which to start RASH at all.
+
+--- /etc/rash/services.allowed
+List of all services, which are allowed to be startet locally from a remote host.
+
+--- /etc/rash/services.conf
+Configuration for the commbination of remote host and services to be started/stopped
+if you call "rashcmd.sh" or "/etc/init.d/rash"
+
+NOTICE: A service name is allways the name of an init-script located under /etc/init.d !!
+
+-- Starten der Dienste
+--- /etc/init.d/rash
+Init-script which startes/stoppes the remote services configured in /etc/rash/services.conf.
+
+NOTICE: You may want to add your local service, which the remote services depend on (f.e. a database)
+to the end of the "Required-Start:" line!
+If you don't do so, your Services might not start on bootup!
+
+--- /etc/init.d/rash_watchdog
+The Watchdog has to be running on the System, which is waiting for an incomming command to 
+start/stop a service. He also anseres the request by sending a status back to the requesting host.
+Also it can be configured to test remote services using netcat (see /etc/rash/rash.conf)
+
+

@@ -1,0 +1,56 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides: rash
+# Required-Start: $network $syslog $remote_fs raw sshd 
+# Should-Start: 
+# Should-Stop: 
+# Required-Stop: $network $syslog $remote_fs sshd
+# Default-Start: 3 5
+# Default-Stop: 0 1 2 6
+# Description: Start the RASH commands
+### END INIT INFO
+
+if [ -e /etc/rash/rash.conf ] ; then
+        . /etc/rash/rash.conf
+        if [ $RASH_ACTIVE -eq 0 ] ; then
+                echo "RASH is deactivated: /etc/rash/rash.conf"
+                exit 1
+        fi
+else
+        echo "RASH isn't configured: /etc/rash/rash.conf"
+        exit 1
+fi
+
+if [ -e /etc/rash/services.conf ] ; then
+        . /etc/rash/services.conf
+else
+        echo "Couldn't find /etc/rash/services.conf!"
+        exit 1
+fi
+
+
+###############
+# start/stop Service
+# ARGs: start|stop
+#
+function exec_rashcmd {
+        for host in ${HOSTS[@]} ; do
+                for service in ${SERVICES[@]}; do
+			echo -n "[ ${1} ] $service at $host..."
+                        /usr/local/bin/rashcmd.sh $1 $host $service &>/dev/null
+                        /usr/local/bin/rashcmd.sh wait-${1} $host $service &>/dev/null
+			logger -t RASH "[ ${1} ] $service at $host = $?" 
+			echo " done"
+                done
+        done
+}
+
+case $1 in
+        start) exec_rashcmd start ;;
+        stop) exec_rashcmd stop ;;
+	restart) $0 stop; $0 start;;
+		status) exit 0;; 
+        *) echo "Usage: $0 <start|stop|restart>" ; exit 1;;
+esac
+exit 0
+
